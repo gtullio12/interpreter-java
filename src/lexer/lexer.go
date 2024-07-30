@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"java/tokens"
 )
 
@@ -24,7 +23,7 @@ func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.value) {
 		l.ch = 0
 	} else {
-		l.ch = l.value[l.position]
+		l.ch = l.value[l.readPosition]
 	}
 	l.position = l.readPosition
 	l.readPosition += 1
@@ -38,6 +37,9 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 		tok = tokens.Token{Type: tokens.PLUS, Literal: "+"}
 	case '-':
 		tok = tokens.Token{Type: tokens.MINUS, Literal: "-"}
+	case '"':
+		str := l.readString()
+		tok = tokens.Token{Type: tokens.STRING, Literal: str}
 	case '=':
 		if l.peekChar() == '=' { // Was an `==`
 			tok = tokens.Token{Type: tokens.EQ, Literal: "=="}
@@ -52,6 +54,8 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 		} else {
 			tok = tokens.Token{Type: tokens.BANG, Literal: "!"}
 		}
+	case '.':
+		tok = tokens.Token{Type: tokens.PERIOD, Literal: "."}
 	case '*':
 		tok = tokens.Token{Type: tokens.ASTERISK, Literal: "*"}
 	case ',':
@@ -71,20 +75,18 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 	case ')':
 		tok = tokens.Token{Type: tokens.RPAREN, Literal: ")"}
 	default:
-		fmt.Printf("Checking for character for %v\n", string(l.ch))
 		if isLetter(l.ch) {
 			literal := l.readIdentifier()
-			fmt.Printf("Found token identifier: %v\n", literal)
 			tokenType := tokens.LookupIdentifier(literal)
 			tok = tokens.Token{Type: tokenType, Literal: literal}
-			return
+			return tok
 		} else if isNumber(l.ch) {
 			literal := l.readNumber()
 			tok = tokens.Token{Type: tokens.INT, Literal: literal}
-			return
+			return tok
 		} else {
 			tok = tokens.Token{Type: tokens.ILLEGAL, Literal: string(l.ch)}
-			return
+			return tok
 		}
 	}
 
@@ -96,10 +98,18 @@ func (l *Lexer) readIdentifier() string {
 	position := l.position
 	for isLetter(l.ch) {
 		l.readChar()
-		fmt.Printf("In readIdentifier. Current character: %v\n", string(l.ch))
 	}
 	return l.value[position:l.position]
 
+}
+
+func (l *Lexer) readString() string {
+	position := l.position
+	l.readChar() // Move pointer forward so we are not looking at `"`
+	for l.ch != '"' {
+		l.readChar()
+	}
+	return l.value[position+1 : l.position]
 }
 
 func (l *Lexer) readNumber() string {
