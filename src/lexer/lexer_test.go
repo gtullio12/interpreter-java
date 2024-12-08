@@ -15,6 +15,7 @@ func TestLexerOneLine(t *testing.T) {
 		tokens.Token{Type: tokens.ASSIGN, Literal: "="},
 		tokens.Token{Type: tokens.INT, Literal: "5"},
 		tokens.Token{Type: tokens.SEMICOLON, Literal: ";"},
+		tokens.Token{Type: tokens.EOF, Literal: ""},
 	}
 
 	for _, tok := range expectedResult {
@@ -37,6 +38,7 @@ func TestLexerString(t *testing.T) {
 		tokens.Token{Type: tokens.ASSIGN, Literal: "="},
 		tokens.Token{Type: tokens.STRING, Literal: "Hello world"},
 		tokens.Token{Type: tokens.SEMICOLON, Literal: ";"},
+		tokens.Token{Type: tokens.EOF, Literal: ""},
 	}
 
 	for _, tok := range expectedResult {
@@ -138,6 +140,7 @@ func TestLexerLarge(t *testing.T) {
 		tokens.Token{Type: tokens.SEMICOLON, Literal: ";"},
 		tokens.Token{Type: tokens.RBRACE, Literal: "}"},
 		tokens.Token{Type: tokens.RBRACE, Literal: "}"},
+		tokens.Token{Type: tokens.EOF, Literal: ""},
 	}
 	for i, token := range expectedResult {
 		nextToken := lexer.NextToken()
