@@ -18,7 +18,7 @@ func TestIntegerAssignmentStatement(t *testing.T) {
 	p := New(l)
 
 	program := p.ParseProgram()
-	fmt.Print(program)
+	checkParserErrors(t, p)
 	if program == nil {
 		t.Fatalf("ParseProgram() returned nil")
 	}
@@ -53,6 +53,7 @@ func TestStringAssignmentStatement(t *testing.T) {
 	p := New(l)
 
 	program := p.ParseProgram()
+	checkParserErrors(t, p)
 	fmt.Print(program)
 	if program == nil {
 		t.Fatalf("ParseProgram() returned nil")
@@ -124,4 +125,16 @@ func testIntegerAssignmentStatement(t *testing.T, s ast.Statement, name string) 
 	}
 	return true
 
+}
+
+func checkParserErrors(t *testing.T, p *Parser) {
+	errors := p.Errors()
+	if len(errors) == 0 {
+		return
+	}
+	t.Errorf("parser has %d errors", len(errors))
+	for _, msg := range errors {
+		t.Errorf("parser error: %q", msg)
+	}
+	t.FailNow()
 }
