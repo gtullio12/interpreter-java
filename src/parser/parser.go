@@ -42,9 +42,31 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case tokens.INTEGER_DT:
 		return p.parseIntStatement()
+	case tokens.STRING_DT:
+		return p.parseStringStatement()
 	default:
 		return nil
 	}
+}
+
+func (p *Parser) parseStringStatement() *ast.StringAssignmentStatement {
+	stmt := &ast.StringAssignmentStatement{Token: p.curToken}
+
+	if !p.expectPeek(tokens.IDENT) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	if !p.expectPeek(tokens.ASSIGN) {
+		return nil
+	}
+
+	// Skipping parsing expression
+	for !p.curTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
+	}
+	return stmt
 }
 
 func (p *Parser) parseIntStatement() *ast.IntegerAssignmentStatement {
