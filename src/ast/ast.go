@@ -42,6 +42,14 @@ type StringAssignmentStatement struct {
 	Value Expression
 }
 
+type ReturnStatement struct {
+	Token       tokens.Token // the tokens.RETURN
+	ReturnValue Expression
+}
+
+func (rs *ReturnStatement) statementNode()       {}
+func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
+
 func (ls *IntegerAssignmentStatement) statementNode()       {}
 func (ls *IntegerAssignmentStatement) TokenLiteral() string { return ls.Token.Literal }
 
