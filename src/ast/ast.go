@@ -1,11 +1,21 @@
 package ast
 
 import (
+	"bytes"
 	"java/tokens"
 )
 
 type Node interface {
 	TokenLiteral() string
+	String() string
+}
+
+func (p *Program) String() string {
+	var out bytes.Buffer
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+	}
+	return out.String()
 }
 
 type Statement interface {
@@ -46,6 +56,44 @@ type ReturnStatement struct {
 	Token       tokens.Token // the tokens.RETURN
 	ReturnValue Expression
 }
+
+func (is *IntegerAssignmentStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(is.TokenLiteral() + " ")
+	out.WriteString(is.Name.String())
+	out.WriteString(" = ")
+	if is.Value != nil {
+		out.WriteString(is.Value.String())
+	}
+
+	out.WriteString(";")
+	return out.String()
+}
+
+func (ss *StringAssignmentStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(ss.TokenLiteral() + " ")
+	out.WriteString(ss.Name.String())
+	out.WriteString(" = ")
+	if ss.Value != nil {
+		out.WriteString(ss.Value.String())
+	}
+
+	out.WriteString(";")
+	return out.String()
+}
+
+func (rs *ReturnStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(rs.TokenLiteral() + " ")
+	if rs.ReturnValue != nil {
+		out.WriteString(rs.ReturnValue.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+
+func (i *Identifier) String() string { return i.Value }
 
 func (rs *ReturnStatement) statementNode()       {}
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }

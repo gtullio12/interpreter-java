@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"java/ast"
 	"java/lexer"
+	"java/tokens"
 	"testing"
 )
 
@@ -166,4 +167,59 @@ func checkParserErrors(t *testing.T, p *Parser) {
 		t.Errorf("parser error: %q", msg)
 	}
 	t.FailNow()
+}
+
+func TestString(t *testing.T) {
+	program := &ast.Program{
+		Statements: []ast.Statement{
+			&ast.IntegerAssignmentStatement{
+				Token: tokens.Token{Type: tokens.INTEGER_DT, Literal: "int"},
+				Name: &ast.Identifier{
+					Token: tokens.Token{Type: tokens.IDENT, Literal: "myVar"},
+					Value: "myVar",
+				},
+				Value: &ast.Identifier{
+					Token: tokens.Token{Type: tokens.IDENT, Literal: "anotherVar"},
+					Value: "anotherVar",
+				},
+			},
+		},
+	}
+
+	fmt.Println(program.String())
+
+	if program.String() != "int myVar = anotherVar;" {
+		t.Errorf("program.String() wrong. got=%q", program.String())
+	}
+}
+
+func TestIdentifierExpression(t *testing.T) {
+	input := `int x = y;`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d",
+			len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.IntegerAssignmentStatement)
+
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.IntegerAssignmentStatement. got=%T",
+			program.Statements[0])
+	}
+	ident, ok := stmt.Value.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("exp not *ast.Identifier. got=%T", stmt.Value)
+	}
+	if ident.Value != "y" {
+		t.Errorf("ident.Value not %s. got=%s", "y", ident.Value)
+	}
+	if ident.TokenLiteral() != "y" {
+		t.Errorf("ident.TokenLiteral not %s. got=%s", "y",
+			ident.TokenLiteral())
+	}
 }

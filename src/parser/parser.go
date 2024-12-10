@@ -7,18 +7,62 @@ import (
 	"java/tokens"
 )
 
+const (
+	int = iota
+	_
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // > or <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -X or !X
+	CALL        // myFunction(X)
+)
+
 type Parser struct {
 	l         *lexer.Lexer
 	curToken  tokens.Token
 	peekToken tokens.Token
 	errors    []string
+
+	prefixParseFns map[tokens.TokenType]prefixParseFn
+	infixParseFns  map[tokens.TokenType]infixParseFn
+}
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
+
+func (p *Parser) parseExpression(precedence int64) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		return nil
+	}
+	leftExp := prefix()
+	return leftExp
+}
+
+func (p *Parser) registerPrefix(tokenType tokens.TokenType, fn prefixParseFn) {
+	p.prefixParseFns[tokenType] = fn
+}
+func (p *Parser) registerInfix(tokenType tokens.TokenType, fn infixParseFn) {
+	p.infixParseFns[tokenType] = fn
 }
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l, errors: []string{}}
 	p.nextToken()
 	p.nextToken()
+
+	p.prefixParseFns = make(map[tokens.TokenType]prefixParseFn)
+	p.registerPrefix(tokens.IDENT, p.parseIdentifier)
+
 	return p
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 func (p *Parser) Errors() []string {
@@ -112,6 +156,8 @@ func (p *Parser) parseIntStatement() *ast.IntegerAssignmentStatement {
 
 	// Skipping parsing expression
 	for !p.curTokenIs(tokens.SEMICOLON) {
+		exp := p.parseExpression(LOWEST)
+		stmt.Value = exp
 		p.nextToken()
 	}
 
