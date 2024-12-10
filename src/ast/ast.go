@@ -57,6 +57,23 @@ type ReturnStatement struct {
 	ReturnValue Expression
 }
 
+type PrefixExpression struct {
+	Token    tokens.Token // The prefix token, e.g. !
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode()      {}
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+	return out.String()
+}
+
 type IntegerLiteral struct {
 	Token tokens.Token
 	Value int64

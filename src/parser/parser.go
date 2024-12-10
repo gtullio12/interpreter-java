@@ -38,6 +38,7 @@ type (
 func (p *Parser) parseExpression(precedence int64) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
+		p.noPrefixParseFnError(p.curToken.Type)
 		return nil
 	}
 	leftExp := prefix()
@@ -71,8 +72,24 @@ func New(l *lexer.Lexer) *Parser {
 	p.prefixParseFns = make(map[tokens.TokenType]prefixParseFn)
 	p.registerPrefix(tokens.IDENT, p.parseIdentifier)
 	p.registerPrefix(tokens.INT, p.parseIntegerLiteral)
+	p.registerPrefix(tokens.MINUS, p.parsePrefixExpression)
 
 	return p
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	expression := &ast.PrefixExpression{
+		Token:    p.curToken,
+		Operator: p.curToken.Literal,
+	}
+	p.nextToken()
+	expression.Right = p.parseExpression(PREFIX)
+	return expression
+}
+
+func (p *Parser) noPrefixParseFnError(t tokens.TokenType) {
+	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -168,7 +185,8 @@ func (p *Parser) parseIntStatement() *ast.IntegerAssignmentStatement {
 		return nil
 	}
 
-	// Skipping parsing expression
+	p.nextToken()
+
 	for !p.curTokenIs(tokens.SEMICOLON) {
 		exp := p.parseExpression(LOWEST)
 		stmt.Value = exp
