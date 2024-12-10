@@ -57,6 +57,15 @@ type ReturnStatement struct {
 	ReturnValue Expression
 }
 
+type IntegerLiteral struct {
+	Token tokens.Token
+	Value int64
+}
+
+func (il *IntegerLiteral) expressionNode()      {}
+func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
+func (il *IntegerLiteral) String() string       { return il.Token.Literal }
+
 func (is *IntegerAssignmentStatement) String() string {
 	var out bytes.Buffer
 	out.WriteString(is.TokenLiteral() + " ")

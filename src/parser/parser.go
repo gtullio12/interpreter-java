@@ -5,6 +5,7 @@ import (
 	"java/ast"
 	"java/lexer"
 	"java/tokens"
+	"strconv"
 )
 
 const (
@@ -43,6 +44,18 @@ func (p *Parser) parseExpression(precedence int64) ast.Expression {
 	return leftExp
 }
 
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	lit.Value = value
+	return lit
+}
+
 func (p *Parser) registerPrefix(tokenType tokens.TokenType, fn prefixParseFn) {
 	p.prefixParseFns[tokenType] = fn
 }
@@ -57,6 +70,7 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.prefixParseFns = make(map[tokens.TokenType]prefixParseFn)
 	p.registerPrefix(tokens.IDENT, p.parseIdentifier)
+	p.registerPrefix(tokens.INT, p.parseIntegerLiteral)
 
 	return p
 }
