@@ -33,6 +33,10 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 	l.skipWhitespace()
 
 	switch l.ch {
+	case '<':
+		tok = tokens.Token{Type: tokens.LT, Literal: "<"}
+	case '>':
+		tok = tokens.Token{Type: tokens.GT, Literal: ">"}
 	case '+':
 		tok = tokens.Token{Type: tokens.PLUS, Literal: "+"}
 	case '-':
@@ -58,6 +62,8 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 		tok = tokens.Token{Type: tokens.PERIOD, Literal: "."}
 	case '*':
 		tok = tokens.Token{Type: tokens.ASTERISK, Literal: "*"}
+	case '/':
+		tok = tokens.Token{Type: tokens.SLASH, Literal: "/"}
 	case ',':
 		tok = tokens.Token{Type: tokens.COMMA, Literal: ","}
 	case ';':
