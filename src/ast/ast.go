@@ -40,8 +40,23 @@ func (p *Program) TokenLiteral() string {
 	}
 }
 
+type Boolean struct {
+	Token tokens.Token
+	Value bool
+}
+
+func (b *Boolean) expressionNode()      {}
+func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
+func (b *Boolean) String() string       { return b.Token.Literal }
+
 type IntegerAssignmentStatement struct {
 	Token tokens.Token // the token.INT token
+	Name  *Identifier
+	Value Expression
+}
+
+type BooleanAssignmentStatement struct {
+	Token tokens.Token // token.TRUE
 	Name  *Identifier
 	Value Expression
 }
@@ -102,6 +117,20 @@ func (il *IntegerLiteral) expressionNode()      {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
+func (bs *BooleanAssignmentStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(bs.Name.TokenLiteral())
+	out.WriteString(bs.Name.String())
+	out.WriteString(" = ")
+
+	if bs.Value != nil {
+		out.WriteString(bs.Value.String())
+	}
+
+	out.WriteString(";")
+	return out.String()
+}
+
 func (is *IntegerAssignmentStatement) String() string {
 	var out bytes.Buffer
 	out.WriteString(is.TokenLiteral() + " ")
@@ -142,6 +171,9 @@ func (i *Identifier) String() string { return i.Value }
 
 func (rs *ReturnStatement) statementNode()       {}
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
+
+func (bs *BooleanAssignmentStatement) statementNode()       {}
+func (bs *BooleanAssignmentStatement) TokenLiteral() string { return bs.Token.Literal }
 
 func (ls *IntegerAssignmentStatement) statementNode()       {}
 func (ls *IntegerAssignmentStatement) TokenLiteral() string { return ls.Token.Literal }

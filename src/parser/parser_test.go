@@ -79,6 +79,26 @@ func TestStringAssignmentStatement(t *testing.T) {
 	}
 }
 
+func TestBooleanAssignmentStatement(t *testing.T) {
+	input := "boolean a = false;"
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if program == nil {
+		t.Fatalf("ParseProgram() returned nil")
+	}
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+	}
+
+	testBooleanStatement(t, program.Statements[0], "a")
+}
+
 func TestReturnStatements(t *testing.T) {
 	input := `
 		return 5;
@@ -106,6 +126,30 @@ func TestReturnStatements(t *testing.T) {
 				returnStmt.TokenLiteral())
 		}
 	}
+}
+
+func testBooleanStatement(t *testing.T, s ast.Statement, name string) bool {
+	if s.TokenLiteral() != "boolean" {
+		t.Errorf("s.TokenLiteral not 'boolean'. got=%q", s.TokenLiteral())
+		return false
+	}
+
+	stmt, ok := s.(*ast.BooleanAssignmentStatement)
+	if !ok {
+		t.Errorf("s not *ast.BooleanAssignmentStatement. got=%T", s)
+		return false
+	}
+	if stmt.Name.Value != name {
+		t.Errorf("stmt.Name.Value not '%s'. got=%s", name, stmt.Name.Value)
+		return false
+	}
+	if stmt.Name.TokenLiteral() != name {
+		t.Errorf("stmt.Name.TokenLiteral() not '%s'. got=%s",
+			name, stmt.Name.TokenLiteral())
+		return false
+	}
+	return true
+
 }
 
 func testStringAssignmentStatement(t *testing.T, s ast.Statement, name string) bool {
@@ -341,6 +385,12 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		input    string
 		expected string
 	}{
+		/**
+		{
+			"boolean a = b > c;",
+			"boolean a = (b > c);",
+		},
+		**/
 		{
 			"int c = -a * b;",
 			"int c = ((-a) * b);",
@@ -450,5 +500,26 @@ func testInfixExpression(t *testing.T, exp ast.Expression, left interface{},
 	if !testLiteralExpression(t, opExp.Right, right) {
 		return false
 	}
+	return true
+}
+
+func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
+	bo, ok := exp.(*ast.Boolean)
+	if !ok {
+		t.Errorf("exp not *ast.Boolean. got=%T", exp)
+		return false
+	}
+
+	if bo.Value != value {
+		t.Errorf("bo.Value not %t. got=%t", value, bo.Value)
+		return false
+	}
+
+	if bo.TokenLiteral() != fmt.Sprintf("%t", value) {
+		t.Errorf("bo.TokenLiteral not %t. got=%s",
+			value, bo.TokenLiteral())
+		return false
+	}
+
 	return true
 }

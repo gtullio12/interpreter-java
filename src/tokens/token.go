@@ -57,6 +57,7 @@ const (
 	INTEGER_DT   = "int"
 	STRING_DT    = "String"
 	CHARACTER_DT = "char"
+	BOOLEAN_DT   = "boolean"
 
 	// External System library
 	SYSTEM  = "System"
@@ -79,6 +80,7 @@ var keywords = map[string]TokenType{
 	"int":     INTEGER_DT,
 	"String":  STRING_DT,
 	"return":  RETURN,
+	"boolean": BOOLEAN_DT,
 }
 
 func LookupIdentifier(s string) TokenType {

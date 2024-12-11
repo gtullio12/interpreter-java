@@ -109,6 +109,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(tokens.IDENT, p.parseIdentifier)
 	p.registerPrefix(tokens.INT, p.parseIntegerLiteral)
 	p.registerPrefix(tokens.MINUS, p.parsePrefixExpression)
+	p.registerPrefix(tokens.TRUE, p.parseBoolean)
+	p.registerPrefix(tokens.FALSE, p.parseBoolean)
 	p.infixParseFns = make(map[tokens.TokenType]infixParseFn)
 
 	p.registerInfix(tokens.PLUS, p.parseInfixExpression)
@@ -135,6 +137,10 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression.Right = p.parseExpression(precedence)
 
 	return expression
+}
+
+func (p *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(tokens.TRUE)}
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
@@ -187,6 +193,8 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
+	case tokens.BOOLEAN_DT:
+		return p.parseBooleanStatement()
 	case tokens.INTEGER_DT:
 		return p.parseIntStatement()
 	case tokens.STRING_DT:
@@ -196,6 +204,30 @@ func (p *Parser) parseStatement() ast.Statement {
 	default:
 		return nil
 	}
+}
+
+func (p *Parser) parseBooleanStatement() *ast.BooleanAssignmentStatement {
+	stmt := &ast.BooleanAssignmentStatement{Token: p.curToken}
+
+	if !p.expectPeek(tokens.IDENT) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	if !p.expectPeek(tokens.ASSIGN) {
+		return nil
+	}
+
+	p.nextToken()
+
+	for !p.curTokenIs(tokens.SEMICOLON) {
+		exp := p.parseExpression(LOWEST)
+		stmt.Value = exp
+		p.nextToken()
+	}
+
+	return stmt
 }
 
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
