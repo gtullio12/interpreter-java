@@ -111,6 +111,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(tokens.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(tokens.TRUE, p.parseBoolean)
 	p.registerPrefix(tokens.FALSE, p.parseBoolean)
+	p.registerPrefix(tokens.LPAREN, p.parseGroupedExpression)
+	p.registerPrefix(tokens.IF, p.parseIfExpression)
 	p.infixParseFns = make(map[tokens.TokenType]infixParseFn)
 
 	p.registerInfix(tokens.PLUS, p.parseInfixExpression)
@@ -123,6 +125,17 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(tokens.GT, p.parseInfixExpression)
 
 	return p
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+	exp := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(tokens.RPAREN) {
+		return nil
+	}
+
+	return exp
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
@@ -191,6 +204,57 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
+func (p *Parser) parseIfExpression() ast.Expression {
+	expression := &ast.IfExpression{Token: p.curToken}
+	if !p.expectPeek(tokens.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+
+	expression.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(tokens.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(tokens.LBRACE) {
+		return nil
+	}
+
+	expression.Consequence = p.parseBlockStatement()
+	return expression
+}
+
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: p.curToken}
+
+	block.Statements = []ast.Statement{}
+
+	p.nextToken()
+
+	for !p.curTokenIs(tokens.RBRACE) && !p.curTokenIs(tokens.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+		p.nextToken()
+	}
+	return block
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case tokens.BOOLEAN_DT:
@@ -202,7 +266,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case tokens.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -238,6 +302,8 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	// TODO: We're skipping the expressions until we
 	// encounter a semicolon
 	for !p.curTokenIs(tokens.SEMICOLON) {
+		exp := p.parseExpression(LOWEST)
+		stmt.ReturnValue = exp
 		p.nextToken()
 	}
 

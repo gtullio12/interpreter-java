@@ -81,6 +81,7 @@ var keywords = map[string]TokenType{
 	"String":  STRING_DT,
 	"return":  RETURN,
 	"boolean": BOOLEAN_DT,
+	"if":      IF,
 }
 
 func LookupIdentifier(s string) TokenType {
