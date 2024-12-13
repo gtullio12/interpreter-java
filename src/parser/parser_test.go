@@ -793,3 +793,60 @@ func TestIfElseStatement2(t *testing.T) {
 	}
 
 }
+
+func TestFunctionParsing(t *testing.T) {
+	input := `public String append(String x, String y) { return x + y; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	function, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.FunctionLiteral. got=%T",
+			stmt.Expression)
+	}
+
+	if len(function.Parameters) != 2 {
+		t.Fatalf("function literal parameters wrong. want 2, got=%d\n", len(function.Parameters))
+	}
+
+	testParameterExpression(t, *function.Parameters[0], "String", "x")
+	testParameterExpression(t, *function.Parameters[1], "String", "y")
+
+	if len(function.Body.Statements) != 1 {
+		t.Fatalf("function.Body.Statements has not 1 statements. got=%d\n", len(function.Body.Statements))
+	}
+
+	bodyStmt, ok := function.Body.Statements[0].(*ast.ReturnStatement)
+	if !ok {
+		t.Fatalf("function body stmt is not ast.ReturnStatement. got=%T",
+			function.Body.Statements[0])
+	}
+
+	testInfixExpression(t, bodyStmt.ReturnValue, "x", "+", "y")
+}
+
+func testParameterExpression(t *testing.T, p ast.Parameter, datatype interface{}, name interface{}) bool {
+	if p.ParameterName.Value != name {
+		t.Fatalf("Parameter name should be %s. but was %s\n", p.ParameterName.Value, name)
+		return false
+	}
+
+	if p.DataType.Literal != datatype {
+		t.Fatalf("Data type for parameter should be %s. but was %s\n", p.DataType.Literal, datatype)
+		return false
+	}
+	return true
+}

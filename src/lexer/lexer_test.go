@@ -152,3 +152,23 @@ func TestLexerLarge(t *testing.T) {
 		}
 	}
 }
+
+func TestLexerElseIf(t *testing.T) {
+	input := `else if`
+	lexer := New(input)
+	expectedResult := tokens.Token{Type: tokens.ELSE_IF, Literal: "else if"}
+
+	if lexer.NextToken().Type != expectedResult.Type {
+		t.Fatalf("Type of token should've been %s, but was %s\n", lexer.NextToken().Type, expectedResult.Type)
+	}
+}
+
+func TestLexerPeekIdentifier(t *testing.T) {
+	input := `else if`
+	lexer := New(input)
+
+	result := lexer.peekIdentifier()
+	if result != "if" {
+		t.Fatalf("Peek identifier was not 'if' but was %s\n", result)
+	}
+}

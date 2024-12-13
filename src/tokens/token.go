@@ -38,13 +38,14 @@ const (
 	RBRACE  = "}"
 
 	// Keywords
-	TRUE   = "TRUE"
-	FALSE  = "FALSE"
-	IF     = "IF"
-	ELSE   = "ELSE"
-	RETURN = "RETURN"
-	CLASS  = "CLASS"
-	STATIC = "STATIC"
+	TRUE    = "TRUE"
+	FALSE   = "FALSE"
+	IF      = "IF"
+	ELSE    = "ELSE"
+	ELSE_IF = "ELSE IF"
+	RETURN  = "RETURN"
+	CLASS   = "CLASS"
+	STATIC  = "STATIC"
 
 	// Access modifiers
 	PUBLIC  = "PUBLIC"
@@ -82,6 +83,7 @@ var keywords = map[string]TokenType{
 	"return":  RETURN,
 	"boolean": BOOLEAN_DT,
 	"if":      IF,
+	"else if": ELSE_IF,
 }
 
 func LookupIdentifier(s string) TokenType {

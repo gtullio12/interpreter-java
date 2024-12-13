@@ -113,6 +113,9 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(tokens.FALSE, p.parseBoolean)
 	p.registerPrefix(tokens.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(tokens.IF, p.parseIfExpression)
+	p.registerPrefix(tokens.PUBLIC, p.parseFunctionLiteral)
+	p.registerPrefix(tokens.PRIVATE, p.parseFunctionLiteral)
+	p.registerPrefix(tokens.VOID, p.parseFunctionLiteral)
 	p.infixParseFns = make(map[tokens.TokenType]infixParseFn)
 
 	p.registerInfix(tokens.PLUS, p.parseInfixExpression)
@@ -125,6 +128,57 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(tokens.GT, p.parseInfixExpression)
 
 	return p
+}
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	// public void getString()
+	// private void getString()
+	// void getString()
+	// public String getString()
+	// public int getString()
+
+	lit := &ast.FunctionLiteral{Token: p.curToken}
+
+	if p.curToken.Type == tokens.PUBLIC || p.curToken.Type == tokens.PRIVATE {
+		lit.Accessor = p.curToken
+		p.nextToken()
+	}
+
+	if p.curToken.Type == tokens.VOID || p.curToken.Type == tokens.STRING_DT || p.curToken.Type == tokens.INTEGER_DT || p.curToken.Type == tokens.CHARACTER_DT {
+		lit.ReturnType = p.curToken
+		p.nextToken()
+	}
+
+	lit.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	if !p.expectPeek(tokens.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+
+	parameters := []*ast.Parameter{}
+
+	for !p.curTokenIs(tokens.RPAREN) {
+		if p.curTokenIs(tokens.COMMA) {
+			p.nextToken()
+		}
+		param := &ast.Parameter{}
+		param.DataType = p.curToken
+		p.nextToken()
+		param.ParameterName = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		parameters = append(parameters, param)
+		p.nextToken()
+	}
+
+	if !p.expectPeek(tokens.LBRACE) {
+		return nil
+	}
+
+	lit.Parameters = parameters
+
+	lit.Body = p.parseBlockStatement()
+	return lit
 }
 
 func (p *Parser) parseGroupedExpression() ast.Expression {

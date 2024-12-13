@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"bytes"
 	"java/tokens"
 )
 
@@ -87,6 +88,17 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 			literal := l.readIdentifier()
 			tokenType := tokens.LookupIdentifier(literal)
 			tok = tokens.Token{Type: tokenType, Literal: literal}
+
+			// Check for "else if" token
+			if tok.Type == tokens.ELSE {
+				if l.peekIdentifier() == "if" {
+					tok = tokens.Token{Type: tokens.ELSE_IF, Literal: "else if"}
+					l.position += 3
+					l.readPosition = l.position + 1
+				} else {
+					tok = tokens.Token{Type: tokens.ELSE, Literal: "else"}
+				}
+			}
 			return tok
 		} else if isNumber(l.ch) {
 			literal := l.readNumber()
@@ -100,6 +112,24 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 
 	l.readChar()
 	return
+}
+
+func (l *Lexer) peekIdentifier() string {
+	temp := l.position
+
+	l.readIdentifier()
+
+	l.skipWhitespace()
+
+	var out bytes.Buffer
+	for isLetter(l.ch) {
+		out.WriteByte(l.ch)
+		l.readChar()
+	}
+
+	l.position = temp
+	l.readPosition = l.position + 1
+	return out.String()
 }
 
 func (l *Lexer) readIdentifier() string {

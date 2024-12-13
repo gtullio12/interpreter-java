@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"java/tokens"
+	"strings"
 )
 
 type Node interface {
@@ -43,8 +44,26 @@ func (p *Program) TokenLiteral() string {
 type IfExpression struct {
 	Token       tokens.Token // The 'if' token
 	Condition   Expression
+	Branches    []ElseIfExpression
 	Consequence *BlockStatement
 	Alternative *BlockStatement
+}
+
+type ElseIfExpression struct {
+	Token       tokens.Token // The else if token
+	Condition   Expression
+	Consequence *BlockStatement
+}
+
+func (eif *ElseIfExpression) expressionNode()      {}
+func (eif *ElseIfExpression) TokenLiteral() string { return eif.Token.Literal }
+func (eif *ElseIfExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("else if")
+	out.WriteString(eif.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(eif.Consequence.String())
+	return out.String()
 }
 
 func (ie *IfExpression) expressionNode()      {}
@@ -99,6 +118,45 @@ type Boolean struct {
 func (b *Boolean) expressionNode()      {}
 func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
 func (b *Boolean) String() string       { return b.Token.Literal }
+
+type Parameter struct {
+	DataType      tokens.Token
+	ParameterName *Identifier
+}
+
+func (p *Parameter) expressionNode()      {}
+func (p *Parameter) TokenLiteral() string { return p.DataType.Literal }
+func (p *Parameter) String() string {
+	var out bytes.Buffer
+	out.WriteString(p.DataType.Literal + " ")
+	out.WriteString(p.ParameterName.Value)
+	return out.String()
+}
+
+type FunctionLiteral struct {
+	Name       *Identifier
+	Accessor   tokens.Token // e.g PUBLIC/PRIVATE
+	ReturnType tokens.Token // e.g String, int,...
+	Token      tokens.Token // The Accessor token
+	Parameters []*Parameter
+	Body       *BlockStatement
+}
+
+func (fl *FunctionLiteral) expressionNode()      {}
+func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
+func (fl *FunctionLiteral) String() string {
+	var out bytes.Buffer
+	params := []string{}
+	for _, p := range fl.Parameters {
+		params = append(params, p.String())
+	}
+	out.WriteString(fl.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") ")
+	out.WriteString(fl.Body.String())
+	return out.String()
+}
 
 type IntegerAssignmentStatement struct {
 	Token tokens.Token // the token.INT token
