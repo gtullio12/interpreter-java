@@ -55,7 +55,7 @@ func TestStringAssignmentStatement(t *testing.T) {
 
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
-	fmt.Print(program)
+
 	if program == nil {
 		t.Fatalf("ParseProgram() returned nil")
 	}

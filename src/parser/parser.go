@@ -108,6 +108,7 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.prefixParseFns = make(map[tokens.TokenType]prefixParseFn)
 	p.registerPrefix(tokens.IDENT, p.parseIdentifier)
+	p.registerPrefix(tokens.STRING, p.parseStringLiteral)
 	p.registerPrefix(tokens.INT, p.parseIntegerLiteral)
 	p.registerPrefix(tokens.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(tokens.TRUE, p.parseBoolean)
@@ -130,6 +131,14 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(tokens.GT, p.parseInfixExpression)
 
 	return p
+}
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	str := &ast.StringLiteral{Token: p.curToken}
+
+	str.Value = p.curToken.Literal
+
+	return str
 }
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
@@ -419,8 +428,6 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	p.nextToken()
 
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
 	for !p.curTokenIs(tokens.SEMICOLON) {
 		exp := p.parseExpression(LOWEST)
 		stmt.ReturnValue = exp
@@ -442,6 +449,8 @@ func (p *Parser) parseStringStatement() *ast.StringAssignmentStatement {
 	if !p.expectPeek(tokens.ASSIGN) {
 		return nil
 	}
+
+	p.nextToken()
 
 	for !p.curTokenIs(tokens.SEMICOLON) {
 		exp := p.parseExpression(LOWEST)

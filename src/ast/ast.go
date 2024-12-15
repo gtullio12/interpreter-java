@@ -238,6 +238,15 @@ func (ie *InfixExpression) String() string {
 	return out.String()
 }
 
+type StringLiteral struct {
+	Token tokens.Token // tokens.STRING
+	Value string
+}
+
+func (sl *StringLiteral) expressionNode()      {}
+func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
+func (sl *StringLiteral) String() string       { return sl.Token.Literal }
+
 type IntegerLiteral struct {
 	Token tokens.Token
 	Value int64

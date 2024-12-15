@@ -30,12 +30,13 @@ const (
 	COMMA     = ","
 	SEMICOLON = ";"
 
-	LPAREN  = "("
-	RPAREN  = ")"
-	LSPAREN = "["
-	RSPAREN = "]"
-	LBRACE  = "{"
-	RBRACE  = "}"
+	LPAREN    = "("
+	RPAREN    = ")"
+	LSPAREN   = "["
+	RSPAREN   = "]"
+	LBRACE    = "{"
+	RBRACE    = "}"
+	QUOTATION = "\""
 
 	// Keywords
 	TRUE    = "TRUE"
