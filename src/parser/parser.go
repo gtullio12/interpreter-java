@@ -443,10 +443,12 @@ func (p *Parser) parseStringStatement() *ast.StringAssignmentStatement {
 		return nil
 	}
 
-	// Skipping parsing expression
 	for !p.curTokenIs(tokens.SEMICOLON) {
+		exp := p.parseExpression(LOWEST)
+		stmt.Value = exp
 		p.nextToken()
 	}
+
 	return stmt
 }
 
