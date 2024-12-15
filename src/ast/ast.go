@@ -171,7 +171,9 @@ func (fl *FunctionLiteral) String() string {
 	for _, p := range fl.Parameters {
 		params = append(params, p.String())
 	}
-	out.WriteString(fl.TokenLiteral())
+	out.WriteString(fl.TokenLiteral() + " ")
+	out.WriteString(fl.ReturnType.Literal + " ")
+	out.WriteString(fl.Name.Value)
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(") ")
