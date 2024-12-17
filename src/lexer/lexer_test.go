@@ -172,3 +172,29 @@ func TestLexerPeekIdentifier(t *testing.T) {
 		t.Fatalf("Peek identifier was not 'if' but was %s\n", result)
 	}
 }
+
+func TestLexerIncrement(t *testing.T) {
+	input := `x++;`
+	lexer := New(input)
+	lexer.NextToken()
+	tok := lexer.NextToken()
+
+	expectedToken := tokens.Token{Type: tokens.INCREMENT, Literal: "++"}
+
+	if expectedToken != tok {
+		t.Fatalf("Expected token should've been %s, but was %s\n", expectedToken.Literal, tok.Literal)
+	}
+}
+
+func TestLexerDecrement(t *testing.T) {
+	input := `x--;`
+	lexer := New(input)
+	lexer.NextToken()
+	tok := lexer.NextToken()
+
+	expectedToken := tokens.Token{Type: tokens.DECREMENT, Literal: "--"}
+
+	if expectedToken != tok {
+		t.Fatalf("Expected token should've been %s, but was %s\n", expectedToken.Literal, tok.Literal)
+	}
+}

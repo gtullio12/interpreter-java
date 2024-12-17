@@ -12,13 +12,15 @@ const (
 	STRING = "STRING"
 
 	// Operators
-	ASSIGN   = "="
-	PLUS     = "+"
-	MINUS    = "-"
-	BANG     = "!"
-	ASTERISK = "*"
-	SLASH    = "/"
-	PERIOD   = "."
+	ASSIGN    = "="
+	PLUS      = "+"
+	MINUS     = "-"
+	BANG      = "!"
+	ASTERISK  = "*"
+	INCREMENT = "++"
+	DECREMENT = "--"
+	SLASH     = "/"
+	PERIOD    = "."
 
 	LT = "<"
 	GT = ">"

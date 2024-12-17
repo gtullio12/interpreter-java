@@ -118,6 +118,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(tokens.PUBLIC, p.parseFunctionLiteral)
 	p.registerPrefix(tokens.PRIVATE, p.parseFunctionLiteral)
 	p.registerPrefix(tokens.VOID, p.parseFunctionLiteral)
+	p.registerPrefix(tokens.BANG, p.parsePrefixExpression)
 	p.infixParseFns = make(map[tokens.TokenType]infixParseFn)
 
 	p.registerInfix(tokens.LPAREN, p.parseCallExpression)
@@ -386,6 +387,12 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
+	case tokens.IDENT:
+		return p.parseIdentifierStatement()
+	case tokens.INCREMENT:
+		return p.parseIncrementStatement()
+	case tokens.DECREMENT:
+		return p.parseDecrementStatement()
 	case tokens.BOOLEAN_DT:
 		return p.parseBooleanStatement()
 	case tokens.INTEGER_DT:
@@ -397,6 +404,48 @@ func (p *Parser) parseStatement() ast.Statement {
 	default:
 		return p.parseExpressionStatement()
 	}
+}
+
+func (p *Parser) parseIdentifierStatement() ast.Statement {
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	if p.peekTokenIs(tokens.INCREMENT) {
+		incrementStmt := &ast.IncrementStatement{Token: p.peekToken, Operand: ident, Side: "POSTFIX"}
+		return incrementStmt
+	} else if p.peekTokenIs(tokens.DECREMENT) {
+		decrementStmt := &ast.DecrementStatement{Token: p.peekToken, Operand: ident, Side: "POSTFIX"}
+		return decrementStmt
+	}
+
+	p.nextToken()
+
+	return nil
+}
+
+func (p *Parser) parseIncrementStatement() *ast.IncrementStatement {
+	if !p.peekTokenIs(tokens.IDENT) {
+		return nil
+	}
+	p.nextToken()
+
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	incrementStmt := &ast.IncrementStatement{Token: p.curToken, Operand: ident, Side: "PREFIX"}
+
+	return incrementStmt
+}
+
+func (p *Parser) parseDecrementStatement() *ast.DecrementStatement {
+	if !p.peekTokenIs(tokens.IDENT) {
+		return nil
+	}
+	p.nextToken()
+
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	decrementStmt := &ast.DecrementStatement{Token: p.curToken, Operand: ident, Side: "PREFIX"}
+
+	return decrementStmt
 }
 
 func (p *Parser) parseBooleanStatement() *ast.BooleanAssignmentStatement {

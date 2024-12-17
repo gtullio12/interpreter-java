@@ -204,6 +204,46 @@ type ReturnStatement struct {
 	ReturnValue Expression
 }
 
+type DecrementStatement struct {
+	Token   tokens.Token // -- token
+	Operand *Identifier
+	Side    string
+}
+
+func (is *DecrementStatement) statementNode()       {}
+func (is *DecrementStatement) TokenLiteral() string { return is.Token.Literal }
+func (is *DecrementStatement) String() string {
+	var out bytes.Buffer
+	if is.Side == "LEFT" {
+		out.WriteString(is.Token.Literal)
+		out.WriteString(is.Operand.String())
+	} else {
+		out.WriteString(is.Operand.String())
+		out.WriteString(is.Token.Literal)
+	}
+	return out.String()
+}
+
+type IncrementStatement struct {
+	Token   tokens.Token // ++ token
+	Operand *Identifier
+	Side    string
+}
+
+func (is *IncrementStatement) statementNode()       {}
+func (is *IncrementStatement) TokenLiteral() string { return is.Token.Literal }
+func (is *IncrementStatement) String() string {
+	var out bytes.Buffer
+	if is.Side == "LEFT" {
+		out.WriteString(is.Token.Literal)
+		out.WriteString(is.Operand.String())
+	} else {
+		out.WriteString(is.Operand.String())
+		out.WriteString(is.Token.Literal)
+	}
+	return out.String()
+}
+
 type PrefixExpression struct {
 	Token    tokens.Token // The prefix token, e.g. !
 	Operator string

@@ -896,3 +896,56 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, exp.Arguments[1], int64(2), "*", int64(3))
 	testInfixExpression(t, exp.Arguments[2], int64(4), "+", int64(5))
 }
+
+func TestIncrementDecrementStatements(t *testing.T) {
+	testStatements := []struct {
+		input    string
+		operand  string
+		operator string
+		side     string
+	}{
+		{"x++;", "x", "++", "POSTFIX"},
+		{"x--;", "x", "--", "POSTFIX"},
+		{"++x;", "x", "++", "PREFIX"},
+		{"--x;", "x", "--", "PREFIX"},
+	}
+
+	for _, tt := range testStatements {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+
+		stmt := program.Statements[0]
+
+		switch stmt.(type) {
+		case *ast.IncrementStatement:
+			incStmt := stmt.(*ast.IncrementStatement)
+			if !testIncrementDecrementStatement(t, incStmt.Operand.Value, "++", incStmt.Side, tt.operand, tt.operator, tt.side) {
+				return
+			}
+		case *ast.DecrementStatement:
+			decStmt := stmt.(*ast.DecrementStatement)
+			if !testIncrementDecrementStatement(t, decStmt.Operand.Value, "--", decStmt.Side, tt.operand, tt.operator, tt.side) {
+				return
+			}
+		}
+	}
+}
+
+func testIncrementDecrementStatement(t *testing.T, operand string, operator string, side string, expOperand string, expOperator string, expSide string) bool {
+	if operand != expOperand {
+		t.Fatalf("Expected %s operand but recieved %s operand \n", expOperand, operand)
+		return false
+	}
+
+	if operator != expOperator {
+		t.Fatalf("Expected %s operator but recieved %s operator \n", expOperator, operator)
+		return false
+	}
+
+	if side != expSide {
+		t.Fatalf("Expected %s side but was %s size \n", expSide, side)
+		return false
+	}
+	return true
+}

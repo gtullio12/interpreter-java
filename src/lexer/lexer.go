@@ -39,9 +39,19 @@ func (l *Lexer) NextToken() (tok tokens.Token) {
 	case '>':
 		tok = tokens.Token{Type: tokens.GT, Literal: ">"}
 	case '+':
-		tok = tokens.Token{Type: tokens.PLUS, Literal: "+"}
+		if l.peekChar() == '+' {
+			tok = tokens.Token{Type: tokens.INCREMENT, Literal: "++"}
+			l.readChar()
+		} else {
+			tok = tokens.Token{Type: tokens.PLUS, Literal: "+"}
+		}
 	case '-':
-		tok = tokens.Token{Type: tokens.MINUS, Literal: "-"}
+		if l.peekChar() == '-' {
+			tok = tokens.Token{Type: tokens.DECREMENT, Literal: "--"}
+			l.readChar()
+		} else {
+			tok = tokens.Token{Type: tokens.MINUS, Literal: "-"}
+		}
 	case '"':
 		str := l.readString()
 		tok = tokens.Token{Type: tokens.STRING, Literal: str}
