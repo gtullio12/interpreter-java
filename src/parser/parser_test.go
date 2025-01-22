@@ -253,8 +253,6 @@ func TestString(t *testing.T) {
 		},
 	}
 
-	fmt.Println(program.String())
-
 	if program.String() != "int myVar = anotherVar;" {
 		t.Errorf("program.String() wrong. got=%q", program.String())
 	}
